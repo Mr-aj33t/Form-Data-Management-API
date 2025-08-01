@@ -48,7 +48,7 @@ docker compose up --build
 ```
 ### 4. Test API
 Visit:
-[Test API Documentation] (http://localhost:8000/docs)http://localhost:8000/docs
+[Test API Documentation] (http://localhost:8000/docs)
 
 
 ###📬 Sample API Payloads
