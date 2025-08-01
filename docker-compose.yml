@@ -1,0 +1,35 @@
+version: '3.8'
+
+services:
+  db:
+    image: postgres:16-alpine  # Use a lightweight PostgreSQL image
+    restart: always
+    environment:
+      POSTGRES_DB: ${POSTGRES_DB}
+      POSTGRES_USER: ${POSTGRES_USER}
+      POSTGRES_PASSWORD: ${POSTGRES_PASSWORD}
+    volumes:
+      - pg_data:/var/lib/postgresql/data  # Volume to persist database data
+    ports:
+      - "5432:5432"  # Optional: exposes DB port for external access (e.g., pgAdmin)
+    healthcheck:  # Ensures the database is ready before the app starts
+      test: ["CMD-SHELL", "pg_isready -U ${POSTGRES_USER} -d ${POSTGRES_DB}"]
+      interval: 5s
+      timeout: 5s
+      retries: 5
+
+  web:
+    build: .  # Build the Docker image using the Dockerfile in current directory
+    command: uvicorn app.main:app --host 0.0.0.0 --port 8000
+    volumes:
+      - .:/app  # Mount current directory to container for live reload (dev only)
+    ports:
+      - "8000:8000"  # Map FastAPI app port
+    environment:
+      DATABASE_URL: postgresql://${POSTGRES_USER}:${POSTGRES_PASSWORD}@db:5432/${POSTGRES_DB}
+    depends_on:
+      db:
+        condition: service_healthy  # Start this container only after DB is healthy
+
+volumes:
+  pg_data:  # Named volume for persistent PostgreSQL storage
